@@ -48,6 +48,7 @@ namespace Trinitween.Coroutines
             }
             transform.rotation = Quaternion.LookRotation(transform.position - lookAtTransform.position, Vector3.up);
         }
+        
         public static IEnumerator LookAtVector3(Transform transform, Vector3 lookAtV3, float smooth)
         {
             Quaternion rot = Quaternion.LookRotation(transform.position - lookAtV3, Vector3.up);
