@@ -21,16 +21,47 @@ namespace Trinitween
             /*ThreadMoveHandle tmh = new ThreadMoveHandle(transform, newValue, smooth);
             Thread t = new Thread(new ThreadStart(tmh.ThreadMove));
             t.Start();*/
-            Debug.Log("BBBBB");
-			transform.GetOrAddComponent<EmptyScript>().StartCoroutine(CoTrT.Move(transform, newValue, smooth));
+
+            TritMonoInstance.StartCoroutine(CoTrT.Move(transform, newValue, smooth));
             //CoTrT.Move(transform, newValue, smooth);
             //MonoBehaviour mono = new MonoBehaviour();
             //mono.StartCoroutine();
         }
 
+        public static void TritRotate(this Transform transform, Vector3 orientation, float smooth = .1f)
+        {
+            TritMonoInstance.StartCoroutine(CoTrT.Rotate(transform, orientation, smooth));
+        }
+
+        public static void TritLookAt(this Transform transform, Transform lookAtTransform, float smooth = .1f)
+        {
+            TritMonoInstance.StartCoroutine(CoTrT.LookAtTransform(transform, lookAtTransform, smooth));
+        }
+        public static void TritLookAt(this Transform transform, Vector3 lookAtPosition, float smooth = .1f)
+        {
+            TritMonoInstance.StartCoroutine(CoTrT.LookAtVector3(transform, lookAtPosition, smooth));
+        }
+        static MonoBehaviour inst;
+
+        static MonoBehaviour TritMonoInstance
+        {
+            get
+            {
+                if (inst != null)
+                    return inst;
+                else
+                {
+                    if (EmptyScript.Instance != null)
+                        inst = EmptyScript.Instance;
+                    else
+                        inst = GameObject.Instantiate(new GameObject()).AddComponent(typeof(EmptyScript)) as MonoBehaviour;
+                }
+                return inst;
+            }
+            set
+            {
+                inst = value;
+            }
+        }
     }
-
-
-
-
 }
