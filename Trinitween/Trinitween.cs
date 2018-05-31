@@ -37,6 +37,13 @@ namespace Trinitween
             tritMonoInstance.StartCoroutine(CoTrT.Move(transform, newValue, smooth, value => tween = value));
             return tween;
         }
+
+        public static TriTween TritMoveEase(this Transform transform, Vector3 newValue, float smooth = .1f)
+        {
+            TriTween tween = new TriTween();
+            tritMonoInstance.StartCoroutine(CoTrT.MoveEase(transform, newValue, smooth, value => tween = value));
+            return tween;
+        }
         /// <summary>
         /// Tween a Rotation to the orientation.
         /// </summary>

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Trinitween.InternalData;
+using Trinitween;
+
 namespace Trinitween.Coroutines
 {
     class CoTrT
@@ -18,6 +20,47 @@ namespace Trinitween.Coroutines
                 yield return new WaitForSecondsRealtime(Time.fixedUnscaledDeltaTime);
             }
             slider.value = newValue;
+        }
+
+        public static IEnumerator MoveEase(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
+        {
+            TriTween tween = new TriTween() { smooth = smooth };
+            tweener.Invoke(tween);
+            yield return null;
+
+            Vector3 origPos = transform.position;
+            Vector3 newPos = Vector3.zero;
+            float t = 0;
+            tween.progress = 0;
+
+            if (smooth != tween.smooth)
+                smooth = tween.smooth;
+
+            while (tween.progress < 1)
+            {
+                if (tween.isDurationBased && !tween.pause)
+                {
+                    if (smooth == 0)
+                        break;
+
+                    tween.progress = t / smooth;
+                    newPos.x = Easing.Ease(tween.easeType, origPos.x, newValue.x, tween.progress, tween.curve);
+                    newPos.y = Easing.Ease(tween.easeType, origPos.y, newValue.y, tween.progress, tween.curve);
+                    newPos.z = Easing.Ease(tween.easeType, origPos.z, newValue.z, tween.progress, tween.curve);
+
+                    transform.position = newPos;
+
+                    if (t == smooth)
+                        break;
+
+                    t += Time.fixedDeltaTime;
+
+                    if (t > smooth)
+                        t = smooth;
+                }
+                yield return null;
+            }
+            transform.position = newValue;
         }
         public static IEnumerator Move(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
         {
