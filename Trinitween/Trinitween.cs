@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading;
-using Trinitween.Threads;
 using Trinitween.Coroutines;
 using Trinitween.InternalData;
 
@@ -19,11 +18,11 @@ namespace Trinitween
         /// <param name="slider">The slider that will move.</param>
         /// <param name="newValue">The new value of the slider</param>
         /// <param name="smooth">A linear interpolation parameter. The closer to 0, the smaller the steps will be.</param>
-        public static void TritSlideValue(this Slider slider, float newValue, float smooth = .1f)
+        public static TriTween TritSlideValue(this Slider slider, float newValue, float smooth = .1f)
         {
-            //TriTween tween = new TriTween();
-            slider.StartCoroutine(CoTrT.SlideValue(slider, newValue, smooth));
-            //return tween;
+            TriTween tween = new TriTween();
+            slider.StartCoroutine(CoTrT.TweenCall(CoTrT.SlideValue(slider, newValue, smooth, value => tween = value), smooth, value => tween = value));
+            return tween;
         }
         /// <summary>
         /// Tween a movement to the newValue.
@@ -34,7 +33,8 @@ namespace Trinitween
         public static TriTween TritMove(this Transform transform, Vector3 newValue, float smooth = .1f)
         {
             TriTween tween = new TriTween();
-            tritMonoInstance.StartCoroutine(CoTrT.Move(transform, newValue, smooth, value => tween = value));
+            tritMonoInstance.StartCoroutine(CoTrT.TweenCall(CoTrT.Move(transform, newValue, smooth, value => tween = value), smooth, value => tween = value));
+            //tritMonoInstance.StartCoroutine(CoTrT.Move(transform, newValue, smooth, value => tween = value));
             return tween;
         }
 
@@ -82,7 +82,7 @@ namespace Trinitween
             return tween;
         }
         static MonoBehaviour inst;
-        static MonoBehaviour tritMonoInstance
+        public static MonoBehaviour tritMonoInstance
         {
             get
             {
@@ -90,16 +90,9 @@ namespace Trinitween
                     return inst;
                 else
                 {
-                    if (EmptyScript.Instance != null)
-                        inst = EmptyScript.Instance;
-                    else
-                        inst = GameObject.Instantiate(new GameObject()).AddComponent(typeof(EmptyScript)) as MonoBehaviour;
+                    inst = GameObject.Instantiate(new GameObject()).AddComponent(typeof(EmptyScript)) as MonoBehaviour;
                 }
                 return inst;
-            }
-            set
-            {
-                inst = value;
             }
         }
     }

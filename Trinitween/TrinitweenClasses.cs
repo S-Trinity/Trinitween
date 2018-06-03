@@ -13,5 +13,6 @@ namespace Trinitween.InternalData
         public float smooth;
         public EaseType easeType = EaseType.Linear;
         public AnimationCurve curve = null;
+        public float timeElapsed;
     }
 }
