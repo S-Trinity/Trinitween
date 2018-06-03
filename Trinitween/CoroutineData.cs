@@ -12,6 +12,7 @@ namespace Trinitween.Coroutines
     class CoTrT
     {
         static string stopPrecision = "F2";
+        
         public static IEnumerator LookAtVector3(Transform transform, Vector3 lookAtV3, float smooth, System.Action<TriTween> tweener)
         {
             //Recover eventual Settings from extensions
@@ -23,16 +24,20 @@ namespace Trinitween.Coroutines
             tween.progress = 0;
             yield return null;
 
-            while (tween.progress < 1)
+            while (tween.progress < 1 && !tween.stop)
             {
-                tween.timeElapsed += Time.fixedDeltaTime;
+                if (!tween.pause)
+                    tween.timeElapsed += Time.fixedDeltaTime;
+                
                 tween.progress = GetProgress(tween);
                 newRot.x = TweenedFloat(tween.easeType, origRot.x, orientation.x, tween.progress, tween.curve);
                 newRot.y = TweenedFloat(tween.easeType, origRot.y, orientation.y, tween.progress, tween.curve);
                 newRot.z = TweenedFloat(tween.easeType, origRot.z, orientation.z, tween.progress, tween.curve);
                 transform.rotation = Quaternion.Euler(newRot);
+                
                 yield return new WaitForFixedUpdate();
             }
+            if (!tween.stop)
             transform.rotation = Quaternion.Euler(orientation);
         }
         public static IEnumerator LookAtTransform(Transform transform, Transform lookAtTransform, float smooth, System.Action<TriTween> tweener)
@@ -46,17 +51,21 @@ namespace Trinitween.Coroutines
             tween.progress = 0;
             yield return null;
 
-            while (tween.progress < 1)
+            while (tween.progress < 1 && !tween.stop)
             {
-                tween.timeElapsed += Time.fixedDeltaTime;
+                if (!tween.pause)
+                    tween.timeElapsed += Time.fixedDeltaTime;
+                
                 tween.progress = GetProgress(tween);
                 orientation = Quaternion.LookRotation(lookAtTransform.position - transform.position, Vector3.up).eulerAngles;
                 newRot.x = TweenedFloat(tween.easeType, origRot.x, orientation.x, tween.progress, tween.curve);
                 newRot.y = TweenedFloat(tween.easeType, origRot.y, orientation.y, tween.progress, tween.curve);
                 newRot.z = TweenedFloat(tween.easeType, origRot.z, orientation.z, tween.progress, tween.curve);
                 transform.rotation = Quaternion.Euler(newRot);
+                
                 yield return new WaitForFixedUpdate();
             }
+            if (!tween.stop)
             transform.rotation = Quaternion.LookRotation(lookAtTransform.position - transform.position, Vector3.up);
         }
         public static IEnumerator Rotate(Transform transform, Vector3 orientation, float smooth, System.Action<TriTween> tweener)
@@ -68,19 +77,22 @@ namespace Trinitween.Coroutines
             Vector3 origRot = transform.rotation.eulerAngles;
             Vector3 newRot = Vector3.zero;
             tween.progress = 0;
-            yield return null; ;
+            yield return null;
 
-
-            while (tween.progress < 1)
+            while (tween.progress < 1 && !tween.stop)
             {
-                tween.timeElapsed += Time.fixedDeltaTime;
+                if (!tween.pause)
+                    tween.timeElapsed += Time.fixedDeltaTime;
+                
                 tween.progress = GetProgress(tween);
                 newRot.x = TweenedFloat(tween.easeType, origRot.x, orientation.x, tween.progress, tween.curve);
                 newRot.y = TweenedFloat(tween.easeType, origRot.y, orientation.y, tween.progress, tween.curve);
                 newRot.z = TweenedFloat(tween.easeType, origRot.z, orientation.z, tween.progress, tween.curve);
                 transform.rotation = Quaternion.Euler(newRot);
+                
                 yield return new WaitForFixedUpdate();
             }
+            if (!tween.stop)
             transform.rotation = Quaternion.Euler(orientation);
         }
         public static IEnumerator SlideValue(Slider slider, float newValue, float smooth, System.Action<TriTween> tweener)
@@ -90,13 +102,18 @@ namespace Trinitween.Coroutines
             float origValue = slider.value;
             tween.progress = 0;
             yield return null;
-            while (tween.progress < 1)
+            
+            while (tween.progress < 1 && !tween.stop)
             {
-                tween.timeElapsed += Time.fixedDeltaTime;
+                if (!tween.pause)
+                    tween.timeElapsed += Time.fixedDeltaTime;
+                
                 tween.progress = GetProgress(tween);
                 slider.value = TweenedFloat(tween.easeType, origValue, newValue, tween.progress, tween.curve);
+                
                 yield return new WaitForFixedUpdate();
             }
+            if (!tween.stop)
             slider.value = newValue;
         }
         public static IEnumerator Move(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
@@ -107,16 +124,21 @@ namespace Trinitween.Coroutines
             Vector3 newPos = Vector3.zero;
             tween.progress = 0;
             yield return null;
-            while (tween.progress < 1)
+            
+            while (tween.progress < 1 && !tween.stop)
             {
-                tween.timeElapsed += Time.fixedDeltaTime;
+                if (!tween.pause)
+                    tween.timeElapsed += Time.fixedDeltaTime;
+                
                 tween.progress = GetProgress(tween);
                 newPos.x = TweenedFloat(tween.easeType, origPos.x, newValue.x, tween.progress, tween.curve);
                 newPos.y = TweenedFloat(tween.easeType, origPos.y, newValue.y, tween.progress, tween.curve);
                 newPos.z = TweenedFloat(tween.easeType, origPos.z, newValue.z, tween.progress, tween.curve);
                 transform.position = newPos;
+                
                 yield return new WaitForFixedUpdate();
             }
+            if (!tween.stop)
             transform.position = newValue;
         }
         public static IEnumerator TweenCall(IEnumerator method, float smooth, System.Action<TriTween> tweener)
@@ -200,12 +222,6 @@ namespace Trinitween.Coroutines
                 yield return null;
             }
             transform.position = newValue;
-        }
-
-
-
-
-
-        
+        } 
     }
 }
