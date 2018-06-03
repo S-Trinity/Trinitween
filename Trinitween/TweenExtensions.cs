@@ -35,6 +35,12 @@ namespace Trinitween
             t.pause = false;
             return t;
         }
+        
+        public static T Stop<T>(this T t) where T : TriTween
+        {
+            t.stop = true;
+            return t;
+        }
 
         public static T SetCurve<T>(this T t, AnimationCurve curve) where T : TriTween
         {
