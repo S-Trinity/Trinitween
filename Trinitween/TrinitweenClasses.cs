@@ -10,6 +10,7 @@ namespace Trinitween.InternalData
         public float progress;
         public bool isDurationBased;
         public bool pause;
+        public bool stop;
         public float smooth;
         public EaseType easeType = EaseType.Linear;
         public AnimationCurve curve = null;
