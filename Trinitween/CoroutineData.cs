@@ -11,6 +11,62 @@ namespace Trinitween.Coroutines
     class CoTrT
     {
         static string stopPrecision = "F2";
+
+        #region CoreMethods
+
+        public static IEnumerator TweenCall(IEnumerator method, float smooth, System.Action<TriTween> tweener)
+        {
+            TriTween tween = new TriTween() { smooth = smooth };
+            tweener.Invoke(tween);
+            yield return null;
+            Coroutine co;
+
+            tween.progress = 0;
+            if (smooth != tween.smooth)
+                smooth = tween.smooth;
+
+            ShortcutExtensions.tritMonoInstance.tweens.Add(tween);
+
+            co = ShortcutExtensions.tritMonoInstance.StartCoroutine(method);
+
+            //Wait for Tween to end
+            yield return co;
+
+            //Call end method if there's one
+            if (tween.hasEndMethod)
+                tween.method.Invoke();
+        }
+
+        public static float TweenedFloat(EaseType type, float from, float to, float t, AnimationCurve curve = null)
+        {
+            return Easing.Ease(type, from, to, t, curve);
+        }
+
+        private static float GetProgress(TriTween tween)
+        {
+            if (tween.pause)
+                return tween.progress;
+            if (tween.smooth == 0)
+                return 1f;
+            if (tween.isDurationBased)
+            {
+                if (tween.timeElapsed > tween.smooth)
+                {
+                    tween.timeElapsed = tween.smooth;
+                    return 1f;
+                }
+                return tween.progress = tween.timeElapsed / tween.smooth;
+            }
+            else
+            {
+                return tween.progress += tween.smooth;
+            }
+        }
+
+        #endregion CoreMethods
+
+        #region TweenMethods
+
         public static IEnumerator SlideValue(Slider slider, float newValue, float smooth)
         {
             yield return null;
@@ -22,76 +78,34 @@ namespace Trinitween.Coroutines
             slider.value = newValue;
         }
 
-        public static IEnumerator MoveEase(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
+
+        public static IEnumerator Moving(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
         {
-            TriTween tween = new TriTween() { smooth = smooth };
-            tweener.Invoke(tween);
-            yield return null;
+            TriTween tween = ShortcutExtensions.tritMonoInstance.tweens[0];
+            ShortcutExtensions.tritMonoInstance.tweens.Remove(tween);
 
             Vector3 origPos = transform.position;
             Vector3 newPos = Vector3.zero;
-            float t = 0;
+
             tween.progress = 0;
 
-            if (smooth != tween.smooth)
-                smooth = tween.smooth;
-
-            while (tween.progress < 1)
+            while (tween.progress < 1 && !tween.stop)
             {
-                if (tween.isDurationBased && !tween.pause)
-                {
-                    if (smooth == 0)
-                        break;
-
-                    tween.progress = t / smooth;
-                    newPos.x = Easing.Ease(tween.easeType, origPos.x, newValue.x, tween.progress, tween.curve);
-                    newPos.y = Easing.Ease(tween.easeType, origPos.y, newValue.y, tween.progress, tween.curve);
-                    newPos.z = Easing.Ease(tween.easeType, origPos.z, newValue.z, tween.progress, tween.curve);
-
-                    transform.position = newPos;
-
-                    if (t == smooth)
-                        break;
-
-                    t += Time.fixedDeltaTime;
-
-                    if (t > smooth)
-                        t = smooth;
-                }
+                tween.progress = GetProgress(tween);
+                newPos.x = TweenedFloat(tween.easeType, origPos.x, newValue.x, tween.progress, tween.curve);
+                newPos.y = TweenedFloat(tween.easeType, origPos.y, newValue.y, tween.progress, tween.curve);
+                newPos.z = TweenedFloat(tween.easeType, origPos.z, newValue.z, tween.progress, tween.curve);
+                transform.position = newPos;
+                if (!tween.pause)
+                    tween.timeElapsed += Time.fixedDeltaTime;
                 yield return null;
             }
-            transform.position = newValue;
-        }
-        public static IEnumerator Move(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
-        {
-            TriTween tween = new TriTween() { smooth = smooth };
-            tweener.Invoke(tween);
-            yield return null;
-
-            Vector3 origPos = transform.position;
-            float progress = 0;
-            if (smooth != tween.smooth)
-                smooth = tween.smooth;
-
-            while (transform.position.ToString(stopPrecision) != newValue.ToString(stopPrecision) && progress < 1)
-            {
-                if (tween.isDurationBased)
-                {
-                    transform.position = Vector3.Lerp(origPos, newValue, progress);
-                    progress += Time.fixedUnscaledDeltaTime * 1 / smooth;
-                }
-                else
-                {
-                    transform.position = Vector3.Lerp(transform.position, newValue, smooth);
-                }
-                yield return new WaitForSecondsRealtime(Time.fixedUnscaledDeltaTime);
-            }
-            transform.position = newValue;
+            if (!tween.stop)
+                transform.position = newValue;
         }
 
         public static IEnumerator Rotate(Transform transform, Vector3 orientation, float smooth, System.Action<TriTween> tweener)
         {
-
             //Recover eventual Settings from extensions
             TriTween tween = new TriTween() { smooth = smooth };
             tweener.Invoke(tween);
@@ -176,5 +190,7 @@ namespace Trinitween.Coroutines
             }
             transform.rotation = rot;
         }
+
+        #endregion TweenMethods
     }
 }

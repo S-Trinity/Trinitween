@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading;
-using Trinitween.Threads;
 using Trinitween.Coroutines;
 using Trinitween.InternalData;
 
-
 namespace Trinitween
 {
-
     public static class ShortcutExtensions
     {
         /// <summary>
@@ -34,16 +31,11 @@ namespace Trinitween
         public static TriTween TritMove(this Transform transform, Vector3 newValue, float smooth = .1f)
         {
             TriTween tween = new TriTween();
-            tritMonoInstance.StartCoroutine(CoTrT.Move(transform, newValue, smooth, value => tween = value));
+            tritMonoInstance.StartCoroutine(CoTrT.TweenCall(CoTrT.Moving(transform, newValue, smooth, value => tween = value), smooth, value => tween = value));
+            //tritMonoInstance.StartCoroutine(CoTrT.Move(transform, newValue, smooth, value => tween = value));
             return tween;
         }
 
-        public static TriTween TritMoveEase(this Transform transform, Vector3 newValue, float smooth = .1f)
-        {
-            TriTween tween = new TriTween();
-            tritMonoInstance.StartCoroutine(CoTrT.MoveEase(transform, newValue, smooth, value => tween = value));
-            return tween;
-        }
         /// <summary>
         /// Tween a Rotation to the orientation.
         /// </summary>
@@ -81,8 +73,8 @@ namespace Trinitween
             tritMonoInstance.StartCoroutine(CoTrT.LookAtVector3(transform, lookAtPosition, smooth, value => tween = value));
             return tween;
         }
-        static MonoBehaviour inst;
-        static MonoBehaviour tritMonoInstance
+        static EmptyScript inst;
+        public static EmptyScript tritMonoInstance
         {
             get
             {
@@ -90,16 +82,9 @@ namespace Trinitween
                     return inst;
                 else
                 {
-                    if (EmptyScript.Instance != null)
-                        inst = EmptyScript.Instance;
-                    else
-                        inst = GameObject.Instantiate(new GameObject()).AddComponent(typeof(EmptyScript)) as MonoBehaviour;
+                    inst = new GameObject().AddComponent(typeof(EmptyScript)) as EmptyScript;
                 }
                 return inst;
-            }
-            set
-            {
-                inst = value;
             }
         }
     }
