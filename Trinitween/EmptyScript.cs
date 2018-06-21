@@ -5,5 +5,5 @@ using Trinitween.InternalData;
 
 public class EmptyScript : MonoBehaviour
 {
-    public List<TriTween> tweens = new List<TriTween>();
+    [HideInInspector] public List<TriTween> tweens = new List<TriTween>();
 }

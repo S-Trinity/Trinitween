@@ -31,7 +31,6 @@ namespace Trinitween.Coroutines
 
             //Wait for Tween to end
             yield return co;
-
             //Call end method if there's one
             if (tween.hasEndMethod)
                 tween.method.Invoke();
@@ -67,70 +66,60 @@ namespace Trinitween.Coroutines
 
         #region TweenMethods
 
-        public static IEnumerator SlideValue(Slider slider, float newValue, float smooth)
-        {
-            yield return null;
-            while (slider.value.ToString(stopPrecision) != newValue.ToString(stopPrecision))
-            {
-                slider.value = Mathf.Lerp(slider.value, newValue, smooth);
-                yield return new WaitForSecondsRealtime(Time.fixedUnscaledDeltaTime);
-            }
-            slider.value = newValue;
-        }
+        #region TransformTween
 
-
-        public static IEnumerator Moving(Transform transform, Vector3 newValue, float smooth, System.Action<TriTween> tweener)
+        public static IEnumerator Moving(Transform transform, Vector3 newValue)
         {
             TriTween tween = ShortcutExtensions.tritMonoInstance.tweens[0];
             ShortcutExtensions.tritMonoInstance.tweens.Remove(tween);
 
-            Vector3 origPos = transform.position;
-            Vector3 newPos = Vector3.zero;
+            Vector3 origValue = transform.position;
+            Vector3 tempValue = Vector3.zero;
 
             tween.progress = 0;
 
             while (tween.progress < 1 && !tween.stop)
             {
                 tween.progress = GetProgress(tween);
-                newPos.x = TweenedFloat(tween.easeType, origPos.x, newValue.x, tween.progress, tween.curve);
-                newPos.y = TweenedFloat(tween.easeType, origPos.y, newValue.y, tween.progress, tween.curve);
-                newPos.z = TweenedFloat(tween.easeType, origPos.z, newValue.z, tween.progress, tween.curve);
-                transform.position = newPos;
+                tempValue.x = TweenedFloat(tween.easeType, origValue.x, newValue.x, tween.progress, tween.curve);
+                tempValue.y = TweenedFloat(tween.easeType, origValue.y, newValue.y, tween.progress, tween.curve);
+                tempValue.z = TweenedFloat(tween.easeType, origValue.z, newValue.z, tween.progress, tween.curve);
+                transform.position = tempValue;
+
                 if (!tween.pause)
-                    tween.timeElapsed += Time.fixedDeltaTime;
+                    tween.timeElapsed += (Time.fixedDeltaTime * Time.timeScale);
+
                 yield return null;
             }
             if (!tween.stop)
                 transform.position = newValue;
         }
 
-        public static IEnumerator Rotate(Transform transform, Vector3 orientation, float smooth, System.Action<TriTween> tweener)
+        public static IEnumerator Rotate(Transform transform, Vector3 newValue)
         {
-            //Recover eventual Settings from extensions
-            TriTween tween = new TriTween() { smooth = smooth };
-            tweener.Invoke(tween);
-            yield return null;
+            TriTween tween = ShortcutExtensions.tritMonoInstance.tweens[0];
+            ShortcutExtensions.tritMonoInstance.tweens.Remove(tween);
 
-            float progress = 0;
-            Quaternion origRot = transform.rotation;
-            if (smooth != tween.smooth)
-                smooth = tween.smooth;
+            Vector3 origValue = transform.rotation.eulerAngles;
+            Vector3 tempValue = Vector3.zero;
 
+            tween.progress = 0;
 
-            while (transform.rotation.ToString(stopPrecision) != orientation.ToString(stopPrecision) && progress < 1)
+            while (tween.progress < 1 && !tween.stop)
             {
-                if (tween.isDurationBased)
-                {
-                    transform.rotation = Quaternion.Euler(Vector3.Lerp(transform.rotation.eulerAngles, orientation, progress));
-                    progress += Time.fixedUnscaledDeltaTime * 1 / smooth;
-                }
-                else
-                {
-                    transform.rotation = Quaternion.Euler(Vector3.Lerp(transform.rotation.eulerAngles, orientation, smooth));
-                }
-                yield return new WaitForSecondsRealtime(Time.fixedUnscaledDeltaTime);
+                tween.progress = GetProgress(tween);
+                tempValue.x = TweenedFloat(tween.easeType, origValue.x, newValue.x, tween.progress, tween.curve);
+                tempValue.y = TweenedFloat(tween.easeType, origValue.y, newValue.y, tween.progress, tween.curve);
+                tempValue.z = TweenedFloat(tween.easeType, origValue.z, newValue.z, tween.progress, tween.curve);
+                transform.rotation = Quaternion.Euler(tempValue);
+
+                if (!tween.pause)
+                    tween.timeElapsed += (Time.fixedDeltaTime * Time.timeScale);
+
+                yield return null;
             }
-            transform.rotation = Quaternion.Euler(orientation);
+            if (!tween.stop)
+                transform.rotation = Quaternion.Euler(newValue);
         }
 
         public static IEnumerator LookAtTransform(Transform transform, Transform lookAtTransform, float smooth, System.Action<TriTween> tweener)
@@ -190,6 +179,52 @@ namespace Trinitween.Coroutines
             }
             transform.rotation = rot;
         }
+
+        #endregion TransformTween
+
+        #region SliderTween
+
+        public static IEnumerator SlideValue(Slider slider, float newValue, float smooth)
+        {
+            yield return null;
+            while (slider.value.ToString(stopPrecision) != newValue.ToString(stopPrecision))
+            {
+                slider.value = Mathf.Lerp(slider.value, newValue, smooth);
+                yield return new WaitForSecondsRealtime(Time.fixedUnscaledDeltaTime);
+            }
+            slider.value = newValue;
+        }
+
+        #endregion SliderTween
+
+        #region AudioSourceTween
+
+        public static IEnumerator AudioVolume(AudioSource aSource, float newValue)
+        {
+            TriTween tween = ShortcutExtensions.tritMonoInstance.tweens[0];
+            ShortcutExtensions.tritMonoInstance.tweens.Remove(tween);
+
+            float origValue = aSource.volume;
+            float tempValue = 0.0f;
+
+            tween.progress = 0;
+
+            while (tween.progress < 1 && !tween.stop)
+            {
+                tween.progress = GetProgress(tween);
+                tempValue = TweenedFloat(tween.easeType, origValue, newValue, tween.progress, tween.curve);
+                aSource.volume = tempValue;
+
+                if (!tween.pause)
+                    tween.timeElapsed += (Time.fixedDeltaTime * Time.timeScale);
+
+                yield return null;
+            }
+            if (!tween.stop)
+                aSource.volume = newValue;
+        }
+
+        #endregion AudioSourceTween
 
         #endregion TweenMethods
     }
